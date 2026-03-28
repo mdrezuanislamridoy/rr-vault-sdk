@@ -1,9 +1,9 @@
 import { RRVaultConfig } from "../types/index";
 
 let config: RRVaultConfig = {
-  apiKey: "",
+  accessKey: "",
   appId: "",
-  baseURL: "http://localhost:8888",
+  baseUrl: "https://api.rrvault.com", // Temporary default
 };
 
 export function setConfig(newConfig: RRVaultConfig) {
@@ -11,8 +11,8 @@ export function setConfig(newConfig: RRVaultConfig) {
 }
 
 export function getConfig() {
-  if (!config.apiKey || !config.appId) {
-    throw new Error("API Key or App ID not found");
+  if (!config.accessKey || !config.appId) {
+    throw new Error("RRVault: Access Key or App ID not found. Please call setConfig first.");
   }
   return config;
 }

@@ -1,11 +1,16 @@
 export interface RRVaultConfig {
-  apiKey: string;
+  accessKey: string;
   appId: string;
-  baseURL?: string;
+  baseUrl?: string;
 }
 
 export interface UploadOptions {
   fileName: string;
   fileType: string;
-  file: File | Buffer;
+  file: File | Buffer | Blob;
+}
+
+export interface UploadResponse {
+  link: string;
+  id: string;
 }
