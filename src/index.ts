@@ -1,45 +1,47 @@
-import { setConfig, getConfig } from "./core/config";
-import { upload } from "./core/upload";
-import { deleteFile, viewFile } from "./core/file";
-import { RRVaultConfig, UploadOptions, UploadResponse } from "./types/index";
+import { setConfig, validateConfig } from "./config.js";
+import { upload as s3Upload, deleteFile as s3Delete } from "./s3.js";
+import { RRVaultConfig, R2Config, UploadOptions, UploadResult, DeleteResult } from "./types.js";
 
 export class RRVault {
-  /**
-   * Configure the RRVault SDK with your Access Key and App ID.
-   * @param config - Configuration object containing accessKey and appId.
-   */
+
   static config(config: RRVaultConfig) {
     setConfig(config);
   }
 
   /**
-   * Upload a file to RRVault.
-   * @param options - Upload options including file, fileName, and fileType.
-   * @returns A promise that resolves to an UploadResponse containing the link and id.
+   * Validates the configuration with the external API.
    */
-  static async upload(options: UploadOptions): Promise<UploadResponse> {
-    return await upload(options);
+  static async validate(): Promise<boolean> {
+    return await validateConfig();
   }
 
-  /**
-   * Delete a file from RRVault by its ID.
-   * @param id - The ID of the file to delete.
-   * @returns A promise that resolves to the API response.
-   */
-  static async delete(id: string) {
-    return await deleteFile(id);
+
+  static async upload(
+    file: any,
+    fileName: string,
+    options: UploadOptions = {}
+  ): Promise<UploadResult> {
+    return await s3Upload(file, fileName, options);
   }
 
-  /**
-   * View file metadata or details from RRVault by its ID.
-   * @param id - The ID of the file to view.
-   * @returns A promise that resolves to the API response.
-   */
-  static async view(id: string) {
-    return await viewFile(id);
+  static async delete(key: string): Promise<DeleteResult> {
+    return await s3Delete(key);
   }
 }
 
-// Export individual functions for functional approach if preferred
-export { setConfig as config, upload, deleteFile as delete, viewFile as view };
-export type { RRVaultConfig, UploadOptions, UploadResponse };
+// Functional approach exports
+export { 
+  setConfig as config, 
+  validateConfig as validate,
+  s3Upload as upload, 
+  s3Delete as deleteFile 
+};
+
+// Type exports
+export type { 
+  RRVaultConfig,
+  R2Config, 
+  UploadOptions, 
+  UploadResult, 
+  DeleteResult 
+};
