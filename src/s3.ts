@@ -21,6 +21,40 @@ function getS3Client() {
 }
 
 /**
+ * Helper to determine MIME type based on file extension.
+ */
+function getMimeType(fileName: string): string {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  const mimeMap: Record<string, string> = {
+    // Images
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "gif": "image/gif",
+    "webp": "image/webp",
+    "svg": "image/svg+xml",
+    "ico": "image/x-icon",
+    // Documents
+    "pdf": "application/pdf",
+    "txt": "text/plain",
+    "html": "text/html",
+    "css": "text/css",
+    "js": "application/javascript",
+    "json": "application/json",
+    // Audio/Video
+    "mp3": "audio/mpeg",
+    "wav": "audio/wav",
+    "mp4": "video/mp4",
+    "webm": "video/webm",
+    // Archives
+    "zip": "application/zip",
+    "rar": "application/x-rar-compressed",
+  };
+
+  return mimeMap[ext || ""] || "application/octet-stream";
+}
+
+/**
  * Upload a file to Cloudflare R2
  * @param file - File content (Buffer, Blob, Uint8Array)
  * @param fileName - Original name of the file
@@ -43,7 +77,7 @@ export async function upload(
     Bucket: config.bucketName,
     Key: key,
     Body: file,
-    ContentType: options.contentType || "application/octet-stream",
+    ContentType: options.contentType || getMimeType(fileName),
     Metadata: options.metadata,
     CacheControl: options.cacheControl,
   });

@@ -53,7 +53,7 @@ export async function validateConfig(): Promise<boolean> {
     });
 
     // Expecting response format: { valid: boolean }
-    return response.status === 200 && response.data.valid === true;
+    return (response.status === 200 || response.status === 201) && response.data.valid === true;
   } catch (error: any) {
     console.error("RRVault Validation Error:", error.message);
     return false;
