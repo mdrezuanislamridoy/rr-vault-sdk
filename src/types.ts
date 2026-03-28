@@ -1,6 +1,8 @@
 export interface RRVaultConfig {
     appId: string;
+    apiKey: string;
     secretKey: string;
+
 }
 
 export interface R2Config {
@@ -27,4 +29,4 @@ export interface UploadResult {
 export interface DeleteResult {
     success: boolean;
     message?: string;
-}
+}

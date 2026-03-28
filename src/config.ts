@@ -49,6 +49,7 @@ export async function validateConfig(): Promise<boolean> {
   try {
     const response = await axios.post<ValidationResponse>(VALIDATION_API_URL, {
       appId: userConfig.appId,
+      apiKey: userConfig.apiKey,
       secretKey: userConfig.secretKey,
     });
 

@@ -19,13 +19,14 @@ npm install @rr-vault/sdk
 ## ⚡ Quick Start
 
 ### 1. Configure the SDK
-Initialize the SDK with your `appId` and `secretKey`. These will be validated automatically when you perform your first operation.
+Initialize the SDK with your `appId`, `apiKey` and `secretKey`. These will be validated automatically when you perform your first operation.
 
 ```typescript
 import { RRVault } from '@rr-vault/sdk';
 
 RRVault.config({
   appId: 'your-app-id',
+  apiKey: 'your-api-key',
   secretKey: 'your-secret-key'
 });
 ```
