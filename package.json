@@ -1,6 +1,6 @@
 {
   "name": "@rr-vault/r2",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "\"RR-Vault SDK is a developer-first cloud storage client for securely uploading, managing, and delivering files using API keys, app-based access, and scalable infrastructure.\"",
   "keywords": [],
   "homepage": "https://github.com/mdrezuanislamridoy/rr-vault-sdk#readme",
