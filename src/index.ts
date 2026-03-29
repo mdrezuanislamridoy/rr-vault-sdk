@@ -1,6 +1,6 @@
-import { setConfig, validateConfig } from "./config.js";
-import { upload as s3Upload, deleteFile as s3Delete } from "./s3.js";
-import { RRVaultConfig, R2Config, UploadOptions, UploadResult, DeleteResult } from "./types.js";
+import { setConfig } from "./config.js";
+import { upload, deleteFile } from "./s3.js";
+import { RRVaultConfig, UploadOptions, UploadResult, DeleteResult } from "./types.js";
 
 export class RRVault {
 
@@ -8,40 +8,28 @@ export class RRVault {
     setConfig(config);
   }
 
-  /**
-   * Validates the configuration with the external API.
-   */
-  static async validate(): Promise<boolean> {
-    return await validateConfig();
-  }
-
-
   static async upload(
     file: any,
     fileName: string,
     options: UploadOptions = {}
   ): Promise<UploadResult> {
-    return await s3Upload(file, fileName, options);
+    return await upload(file, fileName, options);
   }
 
   static async delete(key: string): Promise<DeleteResult> {
-    return await s3Delete(key);
+    return await deleteFile(key);
   }
 }
 
-// Functional approach exports
-export { 
-  setConfig as config, 
-  validateConfig as validate,
-  s3Upload as upload, 
-  s3Delete as deleteFile 
+export {
+  setConfig as config,
+  upload,
+  deleteFile
 };
 
-// Type exports
-export type { 
+export type {
   RRVaultConfig,
-  R2Config, 
-  UploadOptions, 
-  UploadResult, 
-  DeleteResult 
+  UploadOptions,
+  UploadResult,
+  DeleteResult
 };

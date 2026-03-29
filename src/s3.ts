@@ -1,124 +1,72 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getConfig, ensureValidConfig } from "./config.js";
+import axios from "axios";
+import { getUserConfig, getApiUrl } from "./config.js";
 import { UploadOptions, UploadResult, DeleteResult } from "./types.js";
-
-let s3Client: S3Client | null = null;
-
-function getS3Client() {
-  if (s3Client) return s3Client;
-  const config = getConfig();
-  
-  s3Client = new S3Client({
-    region: "auto",
-    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    },
-  });
-  
-  return s3Client;
-}
+import { AxiosResponse } from "axios";
 
 /**
- * Helper to determine MIME type based on file extension.
- */
-function getMimeType(fileName: string): string {
-  const ext = fileName.split(".").pop()?.toLowerCase();
-  const mimeMap: Record<string, string> = {
-    // Images
-    "png": "image/png",
-    "jpg": "image/jpeg",
-    "jpeg": "image/jpeg",
-    "gif": "image/gif",
-    "webp": "image/webp",
-    "svg": "image/svg+xml",
-    "ico": "image/x-icon",
-    // Documents
-    "pdf": "application/pdf",
-    "txt": "text/plain",
-    "html": "text/html",
-    "css": "text/css",
-    "js": "application/javascript",
-    "json": "application/json",
-    // Audio/Video
-    "mp3": "audio/mpeg",
-    "wav": "audio/wav",
-    "mp4": "video/mp4",
-    "webm": "video/webm",
-    // Archives
-    "zip": "application/zip",
-    "rar": "application/x-rar-compressed",
-  };
-
-  return mimeMap[ext || ""] || "application/octet-stream";
-}
-
-/**
- * Upload a file to Cloudflare R2
- * @param file - File content (Buffer, Blob, Uint8Array)
- * @param fileName - Original name of the file
- * @param options - Additional upload options
+ * Upload a file to RR-Vault via backend proxy
  */
 export async function upload(
   file: any,
   fileName: string,
   options: UploadOptions = {}
 ): Promise<UploadResult> {
-  await ensureValidConfig();
-  const config = getConfig();
-  const client = getS3Client();
-  
-  // Clean folder path and construct key
-  const folder = options.folder ? `${options.folder.replace(/\/$/, "")}/` : "";
-  const key = `${folder}${Date.now()}-${fileName.replace(/\s+/g, "-")}`;
+  const config = getUserConfig();
+  const apiUrl = getApiUrl();
 
-  const command = new PutObjectCommand({
-    Bucket: config.bucketName,
-    Key: key,
-    Body: file,
-    ContentType: options.contentType || getMimeType(fileName),
-    Metadata: options.metadata,
-    CacheControl: options.cacheControl,
-  });
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("fileName", fileName);
+  formData.append("appId", config.appId);
+  formData.append("apiKey", config.apiKey);
+  formData.append("secretKey", config.secretKey);
 
-  const response = await client.send(command);
+  if (options.folder) formData.append("folder", options.folder);
+  if (options.contentType) formData.append("contentType", options.contentType);
+  if (options.cacheControl) formData.append("cacheControl", options.cacheControl);
+  if (options.metadata) {
+    formData.append("metadata", JSON.stringify(options.metadata));
+  }
 
-  // Construct public URL
-  const baseUrl = config.publicUrl 
-    ? config.publicUrl.replace(/\/$/, "") 
-    : `https://${config.bucketName}.${config.accountId}.r2.dev`;
-    
-  const url = `${baseUrl}/${key}`;
+  try {
+    const response: AxiosResponse<UploadResult> = await axios.post(apiUrl, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-  return {
-    key,
-    url,
-    etag: response.ETag,
-  };
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      `RRVault Upload Failed: ${error.response?.data?.message || error.message}`
+    );
+  }
 }
 
 /**
- * Delete a file from Cloudflare R2
- * @param key - The storage key (path) of the file
+ * Delete a file from RR-Vault via backend proxy
  */
 export async function deleteFile(key: string): Promise<DeleteResult> {
-  await ensureValidConfig();
-  const config = getConfig();
-  const client = getS3Client();
-
-  const command = new DeleteObjectCommand({
-    Bucket: config.bucketName,
-    Key: key,
-  });
+  const config = getUserConfig();
+  const apiUrl = getApiUrl();
 
   try {
-    await client.send(command);
-    return { success: true };
+    const response: AxiosResponse<DeleteResult> = await axios({
+      method: "DELETE",
+      url: apiUrl,
+      data: {
+        key,
+        appId: config.appId,
+        apiKey: config.apiKey,
+        secretKey: config.secretKey,
+      },
+    });
+
+    return response.data;
   } catch (error: any) {
-    return { 
-      success: false, 
-      message: error.message || "Failed to delete file from R2" 
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "Failed to delete file",
     };
   }
 }

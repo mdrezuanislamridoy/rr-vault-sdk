@@ -1,6 +1,6 @@
 {
-  "name": "@rr-vault/sdk",
-  "version": "1.0.9",
+  "name": "@rr-vault/r2",
+  "version": "1.0.0",
   "description": "\"RR-Vault SDK is a developer-first cloud storage client for securely uploading, managing, and delivering files using API keys, app-based access, and scalable infrastructure.\"",
   "keywords": [],
   "homepage": "https://github.com/mdrezuanislamridoy/rr-vault-sdk#readme",
@@ -30,9 +30,6 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1019.0",
-    "@aws-sdk/lib-storage": "^3.1019.0",
-    "@types/axios": "^0.9.36",
     "axios": "^1.14.0"
   }
 }

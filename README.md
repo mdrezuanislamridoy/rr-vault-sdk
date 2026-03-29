@@ -1,8 +1,8 @@
-# @rr-vault/sdk 🚀
+# @rr-vault/r2 🚀
 
-**RR-Vault SDK** is a developer-first cloud storage client designed for securely uploading, managing, and delivering files using API keys, app-based access, and scalable infrastructure. 
+**RR-Vault R2 SDK** is a developer-first cloud storage client designed for securely uploading, managing, and delivering files using API keys and app-based access.
 
-Built on top of Cloudflare R2 (S3-compatible), it provides a simplified interface with **Automatic Lazy Validation** against your backend API.
+This SDK acts as a **Secure Thin Client**. Instead of storing cloud credentials (like R2/S3 keys) on the client-side, it proxies all requests through your backend API, ensuring your infrastructure remains 100% private.
 
 ---
 
@@ -11,7 +11,7 @@ Built on top of Cloudflare R2 (S3-compatible), it provides a simplified interfac
 Install the package via npm:
 
 ```bash
-npm install @rr-vault/sdk
+npm install @rr-vault/r2
 ```
 
 ---
@@ -19,10 +19,10 @@ npm install @rr-vault/sdk
 ## ⚡ Quick Start
 
 ### 1. Configure the SDK
-Initialize the SDK with your `appId`, `apiKey` and `secretKey`. These will be validated automatically when you perform your first operation.
+Initialize the SDK with your `appId`, `apiKey`, and `secretKey`. These will be sent to your backend with every request for verification.
 
 ```typescript
-import { RRVault } from '@rr-vault/sdk';
+import { RRVault } from '@rr-vault/r2';
 
 RRVault.config({
   appId: 'your-app-id',
@@ -32,11 +32,11 @@ RRVault.config({
 ```
 
 ### 2. Upload a File
-The validation happens automatically during the first upload. If the credentials are invalid, an error will be thrown.
+The SDK sends the file and your credentials to your backend API (`/api/v1/upload`). Your backend then handles the actual storage logic.
 
 ```typescript
 try {
-  const fileContent = Buffer.from("Hello RR-Vault!"); // Or a File blob in browser
+  const fileContent = Buffer.from("Hello RR-Vault!"); // Or a File/Blob/Uint8Array
   
   const result = await RRVault.upload(fileContent, "myfile.txt", {
     folder: "documents",
@@ -51,7 +51,7 @@ try {
 ```
 
 ### 3. Delete a File
-Delete files using their unique storage key.
+Delete files securely by sending a delete request through your proxy.
 
 ```typescript
 const result = await RRVault.delete("documents/171165...-myfile.txt");
@@ -65,11 +65,11 @@ if (result.success) {
 
 ---
 
-## 🛡️ Automatic Lazy Validation
-The SDK uses a "Lazy Validation" mechanism to stay fast and efficient:
-- `RRVault.config()` only stores credentials locally.
-- The **first call** to `upload()` or `delete()` triggers a validation request to the backend.
-- Results are cached for the duration of the session, so subsequent calls are instantaneous.
+## 🛡️ Security Architecture
+The SDK implements a **Zero-Secret Client Policy**:
+- **No Cloud Keys:** Access Key IDs and Secret Access Keys for R2/S3 are **NEVER** stored in the SDK or frontend code.
+- **Backend Proxy:** All operations (`upload`, `delete`) are routed through your server. 
+- **Centralized Validation:** Your backend validates the `appId` and `secretKey` before interacting with the storage provider.
 
 ---
 
@@ -78,19 +78,20 @@ The SDK uses a "Lazy Validation" mechanism to stay fast and efficient:
 ### `RRVault.config(options: RRVaultConfig)`
 Sets up the SDK credentials.
 - `appId`: Your application ID.
+- `apiKey`: Your application API key.
 - `secretKey`: Your secret key.
 
 ### `RRVault.upload(file, fileName, options?)`
-Uploads a file to the cloud.
+Uploads a file via your backend proxy.
 - `file`: Buffer, Blob, or Uint8Array.
 - `fileName`: Original name of the file.
 - `options`:
   - `folder`: (Optional) Virtual folder path.
-  - `contentType`: (Optional) MIME type of the file.
+  - `contentType`: (Optional) MIME type.
   - `metadata`: (Optional) Key-value pairs for storage metadata.
 
 ### `RRVault.delete(key)`
-Deletes a file by its key.
+Deletes a file by its key via your backend proxy.
 - `key`: The storage key returned during upload.
 
 ---
@@ -101,7 +102,7 @@ Deletes a file by its key.
 export interface UploadResult {
     key: string;       // Unique storage path
     url: string;       // Public delivery URL
-    etag?: string;     // AWS S3 entity tag
+    etag?: string;     // entity tag
 }
 
 export interface DeleteResult {

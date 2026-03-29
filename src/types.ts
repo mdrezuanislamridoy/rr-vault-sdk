@@ -5,14 +5,6 @@ export interface RRVaultConfig {
 
 }
 
-export interface R2Config {
-    accountId: string;
-    accessKeyId: string;
-    secretAccessKey: string;
-    bucketName: string;
-    publicUrl?: string;
-}
-
 export interface UploadOptions {
     folder?: string;
     contentType?: string;
