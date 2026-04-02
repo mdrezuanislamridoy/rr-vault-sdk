@@ -1,6 +1,6 @@
 import { RRVaultConfig } from "./types.js";
 
-const VALIDATION_API_URL = "http://localhost:8888/api/v1/validate";
+const VALIDATION_API_URL = "https://rr-vault.onrender.com/api/v1/validate";
 
 let userConfig: RRVaultConfig | null = null;
 
